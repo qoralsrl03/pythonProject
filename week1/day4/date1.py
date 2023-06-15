@@ -5,6 +5,7 @@ print(now)
 #format
 now_yyyymmdd = now.strftime('%Y-%m-%d %H:%M:%S')
 print(now_yyyymmdd)
+
 now_yymmdd = now.strftime('%y-%m-%d %H:%M:%S')
 print(now_yymmdd)
 #문자열 to datetime
