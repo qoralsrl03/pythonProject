@@ -25,6 +25,10 @@ time.sleep(1)
 lis = driver.find_elements(By.CSS_SELECTOR,'#mCSB_3_container > ul > li')
 total = len(lis)
 print('매장 수:',total)
+time.sleep(1)
+driver.get_screenshot_as_file('test.png') #사진 찍기
+soup = BeautifulSoup(driver.page_source, 'html.parser')
+
 for shop in lis:
     print(shop)
     lat = shop.get_attribute('data-lat')
@@ -33,6 +37,12 @@ for shop in lis:
     shopinfo = shop.find_element(By.TAG_NAME, 'p')
     shopinfo_text = shopinfo.text
     info = shopinfo_text.split('\n')
+
+    # lat = shop.get('data-lat')
+    # long = shop.get('data-long')
+    # shopnm = shop.select_one('string').getText()
+    # shopinfo = shop.select_one('.result_details').getText()
+
     if len(info) == 2:
         addr = info[0]
         hp = info[1]
