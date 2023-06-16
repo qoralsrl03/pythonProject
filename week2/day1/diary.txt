@@ -1,0 +1,3 @@
+/diary hi
+/diary
+/diary
