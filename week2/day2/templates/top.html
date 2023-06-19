@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.6.1.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+    <script src="{{ url_for('static',filename='main.js') }}"></script>
+</head>
+<body>
+  <div class="row">
+    top 입니다. !!
+  </div>
+  <div class="row">
+    {% block content %}
+    {% endblock %}
+  </div>
+</body>
+</html>

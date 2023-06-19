@@ -1,0 +1,16 @@
+{% extends 'top.html' %}
+{% block content %}
+  <div>
+    <table id="id_list">
+      <tbody>
+        {%for x in coins %}
+        <tr>
+          <td>{{x.korean_name}}</td>
+          <td>{{x.english_name}}</td>
+          <td>{{x.market}}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
