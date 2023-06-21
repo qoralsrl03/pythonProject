@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
+from selenium.webdriver.common.action_chains import ActionChains
 import cx_Oracle
 conn = cx_Oracle.connect("study", "study", "localhost:1521/xe")
 
@@ -21,7 +22,7 @@ def create_custom_messagebox(window, text, categories):
     categories = categories
     category_str = ', '.join(categories)
     result = messagebox.askokcancel('입력 재확인', '검색어: ' + text + '\n선택 카테고리: ' + category_str, parent=window)
-    if not categories:
+    if not categories or not text:
         messagebox.showinfo("알림", '카테고리를 선택해주세요.')
         return
     else:
@@ -34,20 +35,23 @@ def create_custom_messagebox(window, text, categories):
             driver.get(url)
             time.sleep(3)
             # searchIframe으로 전환
-            driver.switch_to.frame('searchIframe')
-
+            driver.switch_to.frame('searchIframe')#entryIframe
             lis = []
             for i in range(1, 100):
                 selector = f'#_pcmap_list_scroll_container > ul > li:nth-child({i})'
+
                 elements = driver.find_elements(By.CSS_SELECTOR, selector)
                 if not elements:
                     break
                 lis.extend(elements)
+
             time.sleep(10)
             data_set={}
             data=[]
             i = 0
             for li in lis:
+                driver.switch_to.default_content()  # 기본 콘텐츠로 돌아옴
+                driver.switch_to.frame('searchIframe')  # entryIframe
                 #이름
                 name = li.find_element(By.CSS_SELECTOR, 'div.CHC5F > a.tzwk0 > div > div > span.place_bluelink.TYaxT').text
 
@@ -74,34 +78,63 @@ def create_custom_messagebox(window, text, categories):
                     review = re.sub(r'\D', '', review_text)  # 숫자 이외의 문자 제거
                     if len(review) <= 0:
                         review = '0'
+
+
+                #지역
+                element = li.find_element(By.CSS_SELECTOR, 'div.CHC5F > a.tzwk0 > div > div > span.place_bluelink.TYaxT')
+                actions = ActionChains(driver)
+                actions.move_to_element(element).click().perform()
+                driver.switch_to.default_content()  # 기본 콘텐츠로 돌아옴
+                driver.switch_to.frame('entryIframe')
+                dong=driver.find_element(By.CSS_SELECTOR,'#app-root > div > div > div > div:nth-child(6) > div > div.place_section.no_margin.vKA6F > div > div > div.O8qbU.tQY7D > div > a > span.LDgIH').text
+
+
+                print('지역: '+ dong)
                 print('리뷰:'+ review)
                 print('카테고리: '+category)
                 print('별점: '+score)
                 print('상호명 : '+name)
                 print('='*100)
                 data_set[i] = {
+                    'dong' : dong,
                     'review' : review,
                     'category' : category,
                     'score' : score,
                     'name' : name
                 }
+
                 data.append(data_set[i])
                 i+=1
             cursor = conn.cursor()
             for item in data:
                 print('*' * 100)
-
+                dong = item['dong']
                 review = item['review']
                 category = item['category']
                 score = item['score']
                 name = item['name']
-                sql = "INSERT INTO mystore (review, category, score, name) VALUES (:review, :category, :score, :name)"
-                print(review, category, score, name)
-                cursor.execute(sql, {'review': review, 'category': category, 'score': score, 'name': name})
-                conn.commit()  # commit 메서드를 호출하여 변경 내용을 DB에 반영
+                sql = """SELECT dong, name FROM mystore WHERE dong = :dong AND name = :name"""
+                cursor.execute(sql, {'dong': dong, 'name': name})
+                result = cursor.fetchall()
+                for row in result:
+                    print(row)
+                if not result:
+                    sql = """INSERT INTO mystore (dong, review, category, score, name) 
+                    VALUES (:dong, :review, :category, :score, :name)"""
+                    print(dong, review, category, score, name)
+                    cursor.execute(sql,
+                                   {'dong': dong, 'review': review, 'category': category, 'score': score, 'name': name})
+                else:
+                    print(name+'의 별점, 리뷰갯수가 업데이트되었습니다.')
+                    sql = """UPDATE mystore SET review = :review, score = :score WHERE dong = :dong and name = :name"""
+                    cursor.execute(sql, {'review': review, 'score': score, 'dong': dong, 'name': name})
+
+            conn.commit()  # 변경 사항 커밋
+            print('END')
             cursor.close()
             conn.close()  # DB 연결 종료
             driver.quit()
+            exit(0)
         else:
             # [취소] 버튼을 클릭한 경우 처리할 작업을 수행합니다.
             messagebox.showinfo("알림", '검색을 취소합니다')
