@@ -43,7 +43,7 @@ def create_custom_messagebox(window, text, categories):
             driver.get(url)
             time.sleep(3)
             # searchIframe으로 전환
-            driver.switch_to.frame('searchIframe')#entryIframe
+            driver.switch_to.frame('searchIframe')
             lis = []
             for i in range(1, 100):
                 selector = f'#_pcmap_list_scroll_container > ul > li:nth-child({i})'
@@ -79,7 +79,7 @@ def create_custom_messagebox(window, text, categories):
                 else:
                     category = '-'
 
-                #리뷰 갯수
+                #리뷰 수
                 reviews= li.find_elements(By.CSS_SELECTOR,'div.CHC5F > div > div > span:nth-child(2)')
                 for review_t in reviews:
                     review_text = review_t.text
@@ -93,16 +93,29 @@ def create_custom_messagebox(window, text, categories):
                 actions = ActionChains(driver)
                 actions.move_to_element(element).click().perform()
                 driver.switch_to.default_content()  # 기본 콘텐츠로 돌아옴
-                driver.switch_to.frame('entryIframe')
-                dong=driver.find_element(By.CSS_SELECTOR,'#app-root > div > div > div > div:nth-child(6) > div > div.place_section.no_margin.vKA6F > div > div > div.O8qbU.tQY7D > div > a > span.LDgIH').text
-                print('지역: ' + dong)
+                driver.switch_to.frame('entryIframe') # 지역의 경우에는 클릭을 타고 다른 iframe에서 가져와서 전환 필요함
+                fulldong_n = driver.find_element(By.CSS_SELECTOR,"""#app-root > div > div > div > div:nth-child(6) > div 
+                > div.place_section.no_margin.vKA6F > div > div > div.O8qbU.tQY7D > div""")
+                fulldong = fulldong_n.find_element(By.CSS_SELECTOR,"""a > span.LDgIH""").text
+
+                # driver.switch_to.default_content()
+                # driver.switch_to.frame('entryIframe')
+                # fulldong_n.find_element(By.CSS_SELECTOR,""" > a > span.LDgIH""").click()
+                # time.sleep(3)
+                # driver.switch_to.default_content()
+                # driver.switch_to.frame('entryIframe')
+                # dong = fulldong_n.find_element(By.CSS_SELECTOR,""" > div > div:nth-child(2)""").text
+                # time.sleep(3)
+                #
+                # print(dong)
+                print('지역: ' + fulldong)
                 print('리뷰: ' + review)
                 print('카테고리: ' + category)
                 print('별점: ' + score)
                 print('상호명 : ' + name)
                 print('='*100)
                 data_set[i] = {
-                    'dong': dong,
+                    'dong': fulldong,
                     'review': review,
                     'category': category,
                     'score': score,
@@ -142,7 +155,7 @@ def create_custom_messagebox(window, text, categories):
             driver.quit()
             exit(0)
         else:
-            # [취소] 버튼을 클릭한 경우 처리할 작업을 수행합니다.
+            # [취소] 버튼을 클릭한 경우 처리할 작업
             messagebox.showinfo("알림", '검색을 취소합니다')
 def btn_click():
     text = txt.get()
@@ -150,9 +163,10 @@ def btn_click():
     selected_categories = [listbox.get(idx) for idx in selected_indices]
     create_custom_messagebox(window, text, selected_categories)
 
-window = tk.Tk()
+window= tk.Tk()
 window.geometry("900x700+100+100")
-window.title("지역 분석")
+window.title("키워드 데이터 삽입창")
+
 # 검색 텍스트 영역
 txt = tk.Entry(window)
 txt.grid(row=0, column=0, sticky='nsew')
@@ -165,7 +179,7 @@ btn.grid(row=0, column=1, sticky='nsew')
 listbox = tk.Listbox(window, selectmode='extended', height=0)
 listbox.grid(row=1, column=0, columnspan=2, sticky='nsew')
 
-# 카테고리 데이터 추가 예시
+# 카테고리 데이터 추가
 categories = ['음식점', '카페']
 for category in categories:
     listbox.insert(tk.END, category)
