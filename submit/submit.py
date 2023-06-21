@@ -43,7 +43,7 @@ def create_custom_messagebox(window, text, categories):
                 if not elements:
                     break
                 lis.extend(elements)
-            time.sleep(1)
+            time.sleep(10)
             data_set={}
             data=[]
             i = 0
@@ -68,7 +68,7 @@ def create_custom_messagebox(window, text, categories):
                     category = '-'
 
                 #리뷰 갯수
-                reviews= li.find_elements(By.CSS_SELECTOR,'div.CHC5F > div > div > span:nth-child(3)')
+                reviews= li.find_elements(By.CSS_SELECTOR,'div.CHC5F > div > div > span:nth-child(2)')
                 for review_t in reviews:
                     review_text = review_t.text
                     review = re.sub(r'\D', '', review_text)  # 숫자 이외의 문자 제거
@@ -87,19 +87,20 @@ def create_custom_messagebox(window, text, categories):
                 }
                 data.append(data_set[i])
                 i+=1
-            print('*'*100)
-            print(data[0]['review'])
             cursor = conn.cursor()
             for item in data:
-                print('실행중')
+                print('*' * 100)
+
                 review = item['review']
                 category = item['category']
                 score = item['score']
                 name = item['name']
                 sql = "INSERT INTO mystore (review, category, score, name) VALUES (:review, :category, :score, :name)"
+                print(review, category, score, name)
                 cursor.execute(sql, {'review': review, 'category': category, 'score': score, 'name': name})
-                conn.commit
+                conn.commit()  # commit 메서드를 호출하여 변경 내용을 DB에 반영
             cursor.close()
+            conn.close()  # DB 연결 종료
             driver.quit()
         else:
             # [취소] 버튼을 클릭한 경우 처리할 작업을 수행합니다.
