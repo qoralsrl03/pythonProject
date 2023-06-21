@@ -1,9 +1,7 @@
 import re
 import tkinter as tk
-import tkinter.font as tkfont
 import tkinter.messagebox as messagebox
 import chromedriver_autoinstaller
-import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -11,6 +9,16 @@ import time
 from selenium.webdriver.common.action_chains import ActionChains
 import cx_Oracle
 conn = cx_Oracle.connect("study", "study", "localhost:1521/xe")
+
+# 아래 쿼리를 통해 디비에 테이블 생성
+# create table mystore(
+#     dong varchar(100),
+#     review number,
+#     category varchar(100),
+#     score number,
+#     name varchar(100),
+#     primary key(dong, name)
+# );
 
 chromedriver_autoinstaller.install()
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
@@ -87,24 +95,22 @@ def create_custom_messagebox(window, text, categories):
                 driver.switch_to.default_content()  # 기본 콘텐츠로 돌아옴
                 driver.switch_to.frame('entryIframe')
                 dong=driver.find_element(By.CSS_SELECTOR,'#app-root > div > div > div > div:nth-child(6) > div > div.place_section.no_margin.vKA6F > div > div > div.O8qbU.tQY7D > div > a > span.LDgIH').text
-
-
-                print('지역: '+ dong)
-                print('리뷰:'+ review)
-                print('카테고리: '+category)
-                print('별점: '+score)
-                print('상호명 : '+name)
+                print('지역: ' + dong)
+                print('리뷰: ' + review)
+                print('카테고리: ' + category)
+                print('별점: ' + score)
+                print('상호명 : ' + name)
                 print('='*100)
                 data_set[i] = {
-                    'dong' : dong,
-                    'review' : review,
-                    'category' : category,
-                    'score' : score,
-                    'name' : name
+                    'dong': dong,
+                    'review': review,
+                    'category': category,
+                    'score': score,
+                    'name': name
                 }
 
                 data.append(data_set[i])
-                i+=1
+                i += 1
             cursor = conn.cursor()
             for item in data:
                 print('*' * 100)
@@ -138,14 +144,11 @@ def create_custom_messagebox(window, text, categories):
         else:
             # [취소] 버튼을 클릭한 경우 처리할 작업을 수행합니다.
             messagebox.showinfo("알림", '검색을 취소합니다')
-
 def btn_click():
     text = txt.get()
     selected_indices = listbox.curselection()
     selected_categories = [listbox.get(idx) for idx in selected_indices]
     create_custom_messagebox(window, text, selected_categories)
-
-
 
 window = tk.Tk()
 window.geometry("900x700+100+100")
