@@ -33,11 +33,41 @@ def create_custom_messagebox(window, text, categories):
             url = f'https://map.naver.com/v5/search/{text}%20{category_str}'
         driver.get(url)
         time.sleep(3)
-        divs = driver.find_elements(By.CLASS_NAME, 'face_marker')
-        time.sleep(3)
-        for div in divs:
-            name = div.find_element(By.CLASS_NAME, 'name').text
-            print(name)
+        # searchIframe으로 전환
+        driver.switch_to.frame('searchIframe')
+
+        lis = []
+        for i in range(1, 100):
+            selector = f'#_pcmap_list_scroll_container > ul > li:nth-child({i})'
+            elements = driver.find_elements(By.CSS_SELECTOR, selector)
+            if not elements:
+                break
+            lis.extend(elements)
+        time.sleep(1)
+        for li in lis:
+            name = li.find_element(By.CSS_SELECTOR, 'div.CHC5F > a.tzwk0 > div > div > span.place_bluelink.TYaxT')
+            score_elements = li.find_elements(By.CSS_SELECTOR, 'div.CHC5F > div.Dr_06 > div > span.h69bs.a2RFq')
+
+            if len(score_elements) > 0:
+                score_text = score_elements[0].text
+            else:
+                score_text = '-'
+            score = re.sub(r'^별점\n', '', score_text)
+            category_elements = li.find_elements(By.CSS_SELECTOR,'div.CHC5F > a.tzwk0 > div > div > span.KCMnt')
+            if len(category_elements) > 0:
+                category = category_elements[0].text
+            else:
+                category = '-'
+
+            reviews= li.find_elements(By.CSS_SELECTOR,'div.CHC5F > div > div > span:nth-child(3)')
+            for review_t in reviews:
+                review_text = review_t.text
+                review = re.sub(r'\D', '', review_text)  # 숫자 이외의 문자 제거
+            print('리뷰:'+ review)
+            print('카테고리: '+category)
+            print('별점: '+score)
+            print('상호명 : '+name.text)
+            print('='*100)
         driver.quit()
     else:
         # [취소] 버튼을 클릭한 경우 처리할 작업을 수행합니다.
@@ -53,7 +83,7 @@ def btn_click():
 
 window = tk.Tk()
 window.geometry("900x700+100+100")
-
+window.title("지역 분석")
 # 검색 텍스트 영역
 txt = tk.Entry(window)
 txt.grid(row=0, column=0, sticky='nsew')
