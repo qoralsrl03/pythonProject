@@ -9,7 +9,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
 import cx_Oracle
-conn = cx_Oracle.connect("java", "oracle", "localhost:1521/xe")
+conn = cx_Oracle.connect("study", "study", "localhost:1521/xe")
 
 chromedriver_autoinstaller.install()
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
@@ -89,8 +89,17 @@ def create_custom_messagebox(window, text, categories):
                 i+=1
             print('*'*100)
             print(data[0]['review'])
-            for i in len(data):
-                df = pd.read_sql(con=conn, sql="SELECT * FROM member")
+            cursor = conn.cursor()
+            for item in data:
+                print('실행중')
+                review = item['review']
+                category = item['category']
+                score = item['score']
+                name = item['name']
+                sql = "INSERT INTO mystore (review, category, score, name) VALUES (:review, :category, :score, :name)"
+                cursor.execute(sql, {'review': review, 'category': category, 'score': score, 'name': name})
+                conn.commit
+            cursor.close()
             driver.quit()
         else:
             # [취소] 버튼을 클릭한 경우 처리할 작업을 수행합니다.
